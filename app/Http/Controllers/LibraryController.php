@@ -62,8 +62,7 @@ class LibraryController extends Controller
 
             return response()->json(['singleLibraryData' => $singleLibraryData]);
 
-        } 
-        elseif ($request['type'] == 'delete') {
+        } elseif ($request['type'] == 'delete') {
             $user = Library::find($delete_id);
 
             $user->delete();
@@ -72,9 +71,40 @@ class LibraryController extends Controller
 
         }
 
-
-
     }
+
+    public function upload(Request $request)
+    {
+        
+        $temp = "tempFolder";
+
+        $tempFolder = time() . '.' . $temp;
+
+        $uploadPath = public_path('upload/'.$tempFolder);
+
+        if (!File::exists($uploadPath)) {
+            File::makeDirectory($uploadPath, 0777, true, true);
+        }
+        
+        $img = $request->file('file');
+
+
+
+
+        // echo gettype($img);
+
+
+        // foreach ($variable as $key => $value) {
+            # code...
+        // }
+        
+
+        // $request->file('image')->move($uploadPath, $imageName);
+        // $imagePath = $uploadDirectory . '/' . $imageName;
+    }
+
+
+
     function listing()
     {
         $libraryData = Library::all();
