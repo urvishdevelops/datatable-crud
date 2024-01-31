@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Imagetable;
 use App\Models\Library;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
 
 class LibraryController extends Controller
 {
@@ -20,26 +22,16 @@ class LibraryController extends Controller
 
         $hidden_id = $request['hidden_id'];
 
+        $hidden_img = $request['hidden_img'];
+
+
+
         $delete_id = $request['deleteId'];
 
 
+        $imgArray = explode(",", $hidden_img);
+
         if ($request['type'] == 'insert') {
-
-            $extension = $request->file('image')->getClientOriginalExtension();
-
-            $imageName = time() . '.' . $extension;
-
-            $uploadDirectory = 'uploads';
-
-            $uploadPath = public_path($uploadDirectory);
-
-            if (!File::exists($uploadPath)) {
-                File::makeDirectory($uploadPath, 0777, true, true);
-            }
-
-            $request->file('image')->move($uploadPath, $imageName);
-            $imagePath = $uploadDirectory . '/' . $imageName;
-
 
             $libModel = new Library;
 
@@ -49,8 +41,32 @@ class LibraryController extends Controller
 
             $libModel->name = $request->name;
             $libModel->isbn = $request->isbn;
-            $libModel->image = $imageName;
             $libModel->save();
+
+            $lastId = DB::getPdo()->lastInsertId();
+
+            $folder = $request['folder'];
+
+            $uploadPath = public_path('upload/' . $folder);
+
+            $newfolderPath = public_path('upload/' . $lastId);
+
+
+            if (File::exists($uploadPath)) {
+                rename($uploadPath, $newfolderPath);
+            } else {
+                echo '<pre>';
+                print_r("file not exists!");
+                die;
+            }
+
+
+            foreach ($imgArray as $key => $singleImage) {
+                Imagetable::create([
+                    'mainId' => $lastId,
+                    'image' => $singleImage
+                ]);
+            }
 
             return response()->json(['res' => "data successfully inserted into db"]);
 
@@ -60,47 +76,98 @@ class LibraryController extends Controller
 
             $singleLibraryData = $singleLibraryData1[0];
 
-            return response()->json(['singleLibraryData' => $singleLibraryData]);
+            $imageTableData = Imagetable::select('image')->where('mainId', $edit_id)->get();
+
+
+            $imgArray = [];
+
+            foreach ($imageTableData as $key => $singleImageTableData) {
+                $singleImg = $singleImageTableData->image;
+                $imgArray[] = explode(".jpg", $singleImg)[0];
+            }
+
+            
+            "<input type='text' class='form-control' name='isbn' id='isbn'
+                placeholder='Enter isbn number'>";
+
+            // echo '<pre>';
+            // print_r($imageTableData);
+            // print_r($singleImageArr);
+            // die;
+
+            // return response()->json(['singleLibraryData' => $singleLibraryData]);
 
         } elseif ($request['type'] == 'delete') {
+
             $user = Library::find($delete_id);
 
             $user->delete();
 
-            return response()->json(['res' => "The Record $delete_id deleted successfully"]);
+            // $imageTable = Imagetable::find($delete_id)->where("status", 1);
+            $imageTable = Imagetable::where("mainId", $delete_id)->delete();
+            // $imageTable->delete();
 
+            $newfolderPath = public_path('upload/' . $delete_id);
+
+
+            if (File::exists($newfolderPath)) {
+                if (File::deleteDirectory($newfolderPath)) {
+                    echo '<pre>';
+                    print_r("The folder has been deleted");
+                    die;
+                } else {
+                    echo '<pre>';
+                    print_r("Issue in the code!");
+                    die;
+                }
+
+            } else {
+                echo '<pre>';
+                print_r("file not exists!");
+                die;
+            }
+
+
+            return response()->json(['res' => "The Record $delete_id deleted successfully"]);
         }
 
     }
 
     public function upload(Request $request)
     {
-        
+
         $temp = "tempFolder";
 
         $tempFolder = time() . '.' . $temp;
 
-        $uploadPath = public_path('upload/'.$tempFolder);
+        $uploadPath = public_path('upload/' . $tempFolder);
 
         if (!File::exists($uploadPath)) {
             File::makeDirectory($uploadPath, 0777, true, true);
         }
-        
+
         $img = $request->file('file');
+        $allimg = [];
 
 
-
-
-        // echo gettype($img);
-
-
-        // foreach ($variable as $key => $value) {
-            # code...
+        // for ($i=0; $i <count($img) ; $i++) { 
+        //    $imageName = $img[$i]->getClientOriginalName();
+        //    $img[$i]->move($uploadPath, $imageName);
+        //    array_push($allimg,$imageName);
         // }
-        
 
-        // $request->file('image')->move($uploadPath, $imageName);
-        // $imagePath = $uploadDirectory . '/' . $imageName;
+        // $extension =  $img->getClientOriginalExtension();
+
+        foreach ($img as $key => $singleImg) {
+            $imageName = $singleImg->getClientOriginalName();
+            $singleImg->move($uploadPath, $imageName);
+            array_push($allimg, $imageName);
+        }
+
+
+        $temparr = ["allimg" => $allimg, "tempFolder" => $tempFolder];
+
+        return $temparr;
     }
 
 

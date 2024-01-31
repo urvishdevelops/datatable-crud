@@ -37,7 +37,8 @@
                     @csrf
                     <input type="hidden" name="hidden_id" id="hidden_id">
                     <input type="hidden" name="type" value="insert">
-                    <input type="hidden" name="type" value="insert">
+                    <input type="hidden" name="hidden_img" id="hidden_img">
+                    <input type="hidden" name="folder" id="folder" value=" ">
                     <div class="mb-3">
                         <label for="name">Name</label>
                         <input type="text" class="form-control" name="name" id="name"
@@ -49,6 +50,13 @@
                         <input type="text" class="form-control" name="isbn" id="isbn"
                             placeholder="Enter isbn number">
                     </div>
+
+
+
+                    <div class="mb-3">
+                      
+                    </div>
+
 
                     {{-- 
                     <div class="mb-3 col-3">
@@ -71,6 +79,8 @@
                         <button type="submit" class="btn btn-primary mt-3" id="submit"
                             value="Add Student">Submit</button>
                     </div>
+
+
                 </form>
             </div>
             <span id="output"></span>
@@ -121,9 +131,16 @@
             },
             init: function() {
                 this.on("addedfile", function(file) {
-                    uploadedFiles.push(file);
-                    console.log('uploadedFiles', uploadedFiles);
-                    return file.name;
+                    // uploadedFiles.push(file);
+                    // console.log('uploadedFiles', uploadedFiles);
+                    // return file.name;
+
+                    // uploadedFiles.push(file.name)
+
+                    var dropzone = this;
+                    clearDropzone = function() {
+                        dropzone.removeAllFiles(true);
+                    };
                 });
 
                 this.on("removedfile", function(file) {
@@ -133,8 +150,13 @@
                 this.on("successmultiple", function(file, responseText) {
                     $("#allimg").val(responseText[0]);
                     $("#folder").val(responseText[1]);
+                    let hiddenImg = $('#hidden_img').val(responseText.allimg);
+                    $('#folder').val(responseText.tempFolder);
+
                 });
+
             }
+
         });
 
 
@@ -175,7 +197,8 @@
                     $('#my-form')[0].reset();
                     $('#output').text(data.res);
                     table.ajax.reload();
-                    console.log(data);
+                    $(".dz-preview").hide();
+                    $(".dz-message").show();
                 },
 
                 error: function(e) {
@@ -215,7 +238,6 @@
 
         $(document).on('click', '.delete', function() {
             let deleteId = this.getAttribute('id');
-
             $.ajax({
                 type: "POST",
                 data: {

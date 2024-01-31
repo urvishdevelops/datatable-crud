@@ -13,10 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('libraries', function (Blueprint $table) {
-            $table->increments('id');
-            $table->string('name');
-            $table->bigInteger('isbn');
+        Schema::create('imagetables', function (Blueprint $table) {
+            $table->id();
+            $table->string('mainId');
+            $table->string('image');
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('libraries');
+        Schema::dropIfExists('imagetables');
     }
 };
