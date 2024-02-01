@@ -20,3 +20,4 @@ Route::get('/listing', [LibraryController::class, 'listing'])-> name('library.li
 Route::post('/edit', [LibraryController::class, 'libraryView'])-> name('library.edit');
 Route::post('/delete', [LibraryController::class, 'libraryView'])-> name('library.delete');
 Route::post('library/upload', [LibraryController::class, 'upload'])->name('dropzone.upload');
+Route::post('library/delete', [LibraryController::class, 'dropzoneDelete'])->name('dropzone.delete');

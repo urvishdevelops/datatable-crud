@@ -78,24 +78,29 @@ class LibraryController extends Controller
 
             $imageTableData = Imagetable::select('image')->where('mainId', $edit_id)->get();
 
-
             $imgArray = [];
+
+            $dropzoneWithData = '';
 
             foreach ($imageTableData as $key => $singleImageTableData) {
                 $singleImg = $singleImageTableData->image;
-                $imgArray[] = explode(".jpg", $singleImg)[0];
+                array_push($imgArray, $singleImg);
             }
 
-            
-            "<input type='text' class='form-control' name='isbn' id='isbn'
-                placeholder='Enter isbn number'>";
 
-            // echo '<pre>';
-            // print_r($imageTableData);
-            // print_r($singleImageArr);
-            // die;
+            foreach ($imgArray as $key => $perImg) {
 
-            // return response()->json(['singleLibraryData' => $singleLibraryData]);
+                // $myImg = 'D:/wamp/www/laravel-ajax-datatable/laravel-ajax-datatable/public/' . $edit_id . '/' . $perImg . '.jpg';
+
+                $dropzoneWithData .= "
+                    <div class='image'>  
+                     <img src='" . asset("upload/" . $edit_id . "/" . $perImg) . "' alt='dropzone image' height='100px' weight='auto'>
+                    
+                     <button class='btn btn-danger delete_img' data-id='".$perImg."' id='".$edit_id."'>Delete</button> 
+                     </div>
+                   ";
+            }
+            return response()->json(['singleLibraryData' => $singleLibraryData, 'dropzoneWithData' => $dropzoneWithData , 'imgArray'=> $imgArray]);
 
         } elseif ($request['type'] == 'delete') {
 
@@ -150,14 +155,6 @@ class LibraryController extends Controller
         $allimg = [];
 
 
-        // for ($i=0; $i <count($img) ; $i++) { 
-        //    $imageName = $img[$i]->getClientOriginalName();
-        //    $img[$i]->move($uploadPath, $imageName);
-        //    array_push($allimg,$imageName);
-        // }
-
-        // $extension =  $img->getClientOriginalExtension();
-
         foreach ($img as $key => $singleImg) {
             $imageName = $singleImg->getClientOriginalName();
             $singleImg->move($uploadPath, $imageName);
@@ -170,6 +167,34 @@ class LibraryController extends Controller
         return $temparr;
     }
 
+
+    public function dropzoneDelete(Request $request){
+      $deleteDropzoneId = $request->deleteId;
+
+      $deleteDropzoneImageName = $request->deleteDropzoneImageName;
+
+
+
+    //   if (File::exists($deleteDropzoneId)) {
+    //     if (File::deleteDirectory($newfolderPath)) {
+    //         echo '<pre>';
+    //         print_r("The folder has been deleted");
+    //         die;
+    //     } else {
+    //         echo '<pre>';
+    //         print_r("Issue in the code!");
+    //         die;
+    //     }
+
+    // } else {
+    //     echo '<pre>';
+    //     print_r("file not exists!");
+    //     die;
+    // }
+
+
+
+    }
 
 
     function listing()

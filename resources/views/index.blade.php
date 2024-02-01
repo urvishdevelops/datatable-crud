@@ -12,6 +12,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.0/dropzone.min.css">
 
     <title>Library details</title>
+
+    <style>
+        .imglist {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            flex-wrap: wrap;
+        }
+
+        .image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 10px;
+            margin-left: 27px;
+        }
+    </style>
 </head>
 
 <body>
@@ -37,7 +56,7 @@
                     @csrf
                     <input type="hidden" name="hidden_id" id="hidden_id">
                     <input type="hidden" name="type" value="insert">
-                    <input type="hidden" name="hidden_img" id="hidden_img">
+                    <input type="hidden" name="hidden_img" id="hidden_img" value=" ">
                     <input type="hidden" name="folder" id="folder" value=" ">
                     <div class="mb-3">
                         <label for="name">Name</label>
@@ -49,12 +68,6 @@
                         <label for="isbn">isbn</label>
                         <input type="text" class="form-control" name="isbn" id="isbn"
                             placeholder="Enter isbn number">
-                    </div>
-
-
-
-                    <div class="mb-3">
-                      
                     </div>
 
 
@@ -74,6 +87,10 @@
                     </div>
 
 
+
+                    <div class="imglist" id="dropzoneImg">
+
+                    </div>
 
                     <div class="mb-3">
                         <button type="submit" class="btn btn-primary mt-3" id="submit"
@@ -148,11 +165,22 @@
                 });
 
                 this.on("successmultiple", function(file, responseText) {
+                    let dropzoneImg = responseText.allimg;
+
+
+                    let dropzoneImgInhidden = dropzoneImg;
+                    let editImg = $('#hidden_img').val();
+
+
+                    let newImg = editImg.concat(",", dropzoneImgInhidden);
+
+
                     $("#allimg").val(responseText[0]);
                     $("#folder").val(responseText[1]);
-                    let hiddenImg = $('#hidden_img').val(responseText.allimg);
-                    $('#folder').val(responseText.tempFolder);
+                    $('#hidden_img').val(responseText.allimg);
 
+
+                    $('#folder').val(responseText.tempFolder);
                 });
 
             }
@@ -222,6 +250,16 @@
                 url: "{{ route('library.edit') }}",
                 success: function(data) {
                     let singleLibraryData = data.singleLibraryData
+                    let dropzoneWithData = data.dropzoneWithData
+                    let dropzoneWithimgArray = data.imgArray
+                    $('#hidden_img').val(dropzoneWithimgArray);
+
+
+                    // dropzoneWithimgArray.forEach(image => {
+                    //     $('#hidden_img').val(image);
+                    // });
+
+                    $('#dropzoneImg').append(dropzoneWithData);
                     $('#name').val(singleLibraryData.name)
                     $('#hidden_id').val(singleLibraryData.id)
                     $('#isbn').val(singleLibraryData.isbn)
@@ -232,7 +270,33 @@
 
             })
         })
-
+        
+        
+        
+        $(document).on('click', '.delete_img', function() {
+            let imageName = this.getAttribute('data-id');
+            let delId = this.getAttribute('id');
+            
+            
+            
+            $.ajax({
+                type: "POST",
+                data: {
+                    "_token": "{{ csrf_token() }}",
+                    'deleteDropzoneImageId': delId,
+                    'deleteDropzoneImageName':imageName
+                },
+                url: "{{ route('dropzone.delete') }}",
+                success: function(data) {
+                    $('#output').text(data.res);
+                    table.ajax.reload();
+                },
+                error: function(e) {
+                    console.log("error", e);
+                }
+    
+            })
+        })
 
 
 
