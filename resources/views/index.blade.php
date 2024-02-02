@@ -28,7 +28,7 @@
             align-items: center;
             flex-direction: column;
             gap: 10px;
-            margin-left: 27px;
+            margin: 27px;
         }
     </style>
 </head>
@@ -138,7 +138,6 @@
             acceptedFiles: ".jpeg,.jpg,.png,.gif",
             clickable: true,
             maxFilesize: 10,
-            maxFiles: 10,
             uploadMultiple: true,
             parallelUploads: 10,
 
@@ -148,12 +147,6 @@
             },
             init: function() {
                 this.on("addedfile", function(file) {
-                    // uploadedFiles.push(file);
-                    // console.log('uploadedFiles', uploadedFiles);
-                    // return file.name;
-
-                    // uploadedFiles.push(file.name)
-
                     var dropzone = this;
                     clearDropzone = function() {
                         dropzone.removeAllFiles(true);
@@ -165,27 +158,43 @@
                 });
 
                 this.on("successmultiple", function(file, responseText) {
-                    let dropzoneImg = responseText.allimg;
+
+                    console.log("responseText",responseText);
 
 
-                    let dropzoneImgInhidden = dropzoneImg;
-                    let editImg = $('#hidden_img').val();
+                    // let dropzoneImg = responseText.allimg;
+
+                    // let dropzoneImgfinal = dropzoneImg;
+
+                    // let editImg = $('#hidden_img').val();
+
+                    // let editImgLength = editImg.length;
+
+                    // let hiddenImg = $('#hidden_img').val();
+
+                    // // hidden Img set condition
+                    // if (editImgLength >= 0) {
+                    //     $('#hidden_img').val(dropzoneImg + ',' + editImg);
+                    // } else {
+                    //     $('#hidden_img').val(dropzoneImg);
+                    // }
+
+                    // let hImg = $('#hidden_img').val(dropzoneImg);
+                    // console.log('hImg:', hImg);
+
+                    // $("#allimg").val(responseText[0]);
+
+                    // $("#folder").val(responseText[1]);
 
 
-                    let newImg = editImg.concat(",", dropzoneImgInhidden);
-
-
-                    $("#allimg").val(responseText[0]);
-                    $("#folder").val(responseText[1]);
-                    $('#hidden_img').val(responseText.allimg);
-
-
-                    $('#folder').val(responseText.tempFolder);
+                    // $('#folder').val(responseText.tempFolder);
                 });
 
             }
 
         });
+
+
 
 
         var table = $('#table').DataTable({
@@ -227,6 +236,9 @@
                     table.ajax.reload();
                     $(".dz-preview").hide();
                     $(".dz-message").show();
+                    $("#hidden_img").val("");
+                    $("#folder").val("");
+
                 },
 
                 error: function(e) {
@@ -249,20 +261,17 @@
                 },
                 url: "{{ route('library.edit') }}",
                 success: function(data) {
+                    console.log("data edit", data);
                     let singleLibraryData = data.singleLibraryData
                     let dropzoneWithData = data.dropzoneWithData
                     let dropzoneWithimgArray = data.imgArray
+
+
                     $('#hidden_img').val(dropzoneWithimgArray);
-
-
-                    // dropzoneWithimgArray.forEach(image => {
-                    //     $('#hidden_img').val(image);
-                    // });
-
                     $('#dropzoneImg').append(dropzoneWithData);
-                    $('#name').val(singleLibraryData.name)
-                    $('#hidden_id').val(singleLibraryData.id)
-                    $('#isbn').val(singleLibraryData.isbn)
+                    $('#name').val(singleLibraryData.name);
+                    $('#hidden_id').val(singleLibraryData.id);
+                    $('#isbn').val(singleLibraryData.isbn);
                 },
                 error: function(e) {
                     console.log("error", e);
@@ -270,21 +279,21 @@
 
             })
         })
-        
-        
-        
+
+
+
         $(document).on('click', '.delete_img', function() {
             let imageName = this.getAttribute('data-id');
             let delId = this.getAttribute('id');
-            
-            
-            
+
+            $(this).parent().hide();
+
             $.ajax({
                 type: "POST",
                 data: {
                     "_token": "{{ csrf_token() }}",
                     'deleteDropzoneImageId': delId,
-                    'deleteDropzoneImageName':imageName
+                    'deleteDropzoneImageName': imageName
                 },
                 url: "{{ route('dropzone.delete') }}",
                 success: function(data) {
@@ -294,7 +303,7 @@
                 error: function(e) {
                     console.log("error", e);
                 }
-    
+
             })
         })
 

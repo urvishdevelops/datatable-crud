@@ -18,6 +18,10 @@ class LibraryController extends Controller
 
     function libraryView(Request $request)
     {
+        echo '<pre>';
+print_r($request->all());
+die;
+
         $edit_id = $request['editId'];
 
         $hidden_id = $request['hidden_id'];
@@ -25,13 +29,16 @@ class LibraryController extends Controller
         $hidden_img = $request['hidden_img'];
 
 
-
         $delete_id = $request['deleteId'];
 
 
         $imgArray = explode(",", $hidden_img);
 
+
         if ($request['type'] == 'insert') {
+
+            echo "We are reaching in insert here!";
+
 
             $libModel = new Library;
 
@@ -47,13 +54,18 @@ class LibraryController extends Controller
 
             $folder = $request['folder'];
 
+           
             $uploadPath = public_path('upload/' . $folder);
+            
+            // : public_path('upload/' . $folder)
 
             $newfolderPath = public_path('upload/' . $lastId);
-
+            
 
             if (File::exists($uploadPath)) {
                 rename($uploadPath, $newfolderPath);
+            echo "come on file is changing";
+
             } else {
                 echo '<pre>';
                 print_r("file not exists!");
@@ -62,6 +74,8 @@ class LibraryController extends Controller
 
 
             foreach ($imgArray as $key => $singleImage) {
+            echo "Urvish DB sudhu pauchi gaya";
+
                 Imagetable::create([
                     'mainId' => $lastId,
                     'image' => $singleImage
@@ -90,17 +104,17 @@ class LibraryController extends Controller
 
             foreach ($imgArray as $key => $perImg) {
 
-                // $myImg = 'D:/wamp/www/laravel-ajax-datatable/laravel-ajax-datatable/public/' . $edit_id . '/' . $perImg . '.jpg';
-
                 $dropzoneWithData .= "
                     <div class='image'>  
                      <img src='" . asset("upload/" . $edit_id . "/" . $perImg) . "' alt='dropzone image' height='100px' weight='auto'>
                     
-                     <button class='btn btn-danger delete_img' data-id='".$perImg."' id='".$edit_id."'>Delete</button> 
+                     <button class='btn btn-danger delete_img' data-id='" . $perImg . "' id='" . $edit_id . "'>Delete</button> 
                      </div>
                    ";
             }
-            return response()->json(['singleLibraryData' => $singleLibraryData, 'dropzoneWithData' => $dropzoneWithData , 'imgArray'=> $imgArray]);
+
+
+            return response()->json(['singleLibraryData' => $singleLibraryData, 'dropzoneWithData' => $dropzoneWithData, 'imgArray' => $imgArray]);
 
         } elseif ($request['type'] == 'delete') {
 
@@ -125,12 +139,7 @@ class LibraryController extends Controller
                     print_r("Issue in the code!");
                     die;
                 }
-
-            } else {
-                echo '<pre>';
-                print_r("file not exists!");
-                die;
-            }
+            } 
 
 
             return response()->json(['res' => "The Record $delete_id deleted successfully"]);
@@ -140,6 +149,7 @@ class LibraryController extends Controller
 
     public function upload(Request $request)
     {
+        // echo "We reached in upload";
 
         $temp = "tempFolder";
 
@@ -149,6 +159,7 @@ class LibraryController extends Controller
 
         if (!File::exists($uploadPath)) {
             File::makeDirectory($uploadPath, 0777, true, true);
+            // echo "Navu file upload fuc ma bani gayi jo";
         }
 
         $img = $request->file('file');
@@ -164,34 +175,40 @@ class LibraryController extends Controller
 
         $temparr = ["allimg" => $allimg, "tempFolder" => $tempFolder];
 
+     
         return $temparr;
     }
 
 
-    public function dropzoneDelete(Request $request){
-      $deleteDropzoneId = $request->deleteId;
+    public function dropzoneDelete(Request $request)
+    {
 
-      $deleteDropzoneImageName = $request->deleteDropzoneImageName;
+        $deleteDropzoneId = $request->deleteDropzoneImageId;
+       
 
+        $deleteDropzoneImageName = $request->deleteDropzoneImageName;
 
+        $uploadPath = public_path('upload' . '/' . $deleteDropzoneId);
+    
 
-    //   if (File::exists($deleteDropzoneId)) {
-    //     if (File::deleteDirectory($newfolderPath)) {
-    //         echo '<pre>';
-    //         print_r("The folder has been deleted");
-    //         die;
-    //     } else {
-    //         echo '<pre>';
-    //         print_r("Issue in the code!");
-    //         die;
-    //     }
+        if (File::exists($uploadPath)) {
+            echo "We reached here!";
+            if (File::delete($uploadPath . '/' . $deleteDropzoneImageName)) {
+                echo "The file has been deleted successfully!";
+            } else {
+                echo '<pre>';
+                print_r("file not exists!");
+                die;
+            }
+        }
 
-    // } else {
-    //     echo '<pre>';
-    //     print_r("file not exists!");
-    //     die;
-    // }
+        $imageTable = Imagetable::where("image", $deleteDropzoneImageName)->where("mainId", $deleteDropzoneId)->delete();
 
+        if ($imageTable == 1) {
+            echo "The Image has been deleted successfully from database!";
+        } else {
+            echo "Please check the error and try again!";
+        }
 
 
     }
