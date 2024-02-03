@@ -18,9 +18,6 @@ class LibraryController extends Controller
 
     function libraryView(Request $request)
     {
-        echo '<pre>';
-print_r($request->all());
-die;
 
         $edit_id = $request['editId'];
 
@@ -36,6 +33,7 @@ die;
 
 
         if ($request['type'] == 'insert') {
+            // insert
 
             echo "We are reaching in insert here!";
 
@@ -54,32 +52,40 @@ die;
 
             $folder = $request['folder'];
 
-           
-            $uploadPath = public_path('upload/' . $folder);
-            
-            // : public_path('upload/' . $folder)
 
-            $newfolderPath = public_path('upload/' . $lastId);
-            
+            if (empty($hidden_id)) {
 
-            if (File::exists($uploadPath)) {
-                rename($uploadPath, $newfolderPath);
-            echo "come on file is changing";
+                $uploadPath = public_path('upload/' . $folder);
+
+                $newfolderPath = public_path('upload/' . $lastId);
+
+                if (File::exists($uploadPath)) {
+                    rename($uploadPath, $newfolderPath);
+
+                    foreach ($imgArray as $key => $singleImage) {
+                        Imagetable::create([
+                            'mainId' => $lastId,
+                            'image' => $singleImage
+                        ]);
+                    }
+                } else {
+                    echo '<pre>';
+                    print_r("file not exists!");
+                    die;
+                }
 
             } else {
-                echo '<pre>';
-                print_r("file not exists!");
-                die;
-            }
+                // edit
 
+                Imagetable::where("mainId", $hidden_id)->delete();
 
-            foreach ($imgArray as $key => $singleImage) {
-            echo "Urvish DB sudhu pauchi gaya";
+                for ($i = 0; $i < count($imgArray); $i++) {
+                    Imagetable::create([
+                        'mainId' => $hidden_id,
+                        'image' => $imgArray[$i]
+                    ]);
+                }
 
-                Imagetable::create([
-                    'mainId' => $lastId,
-                    'image' => $singleImage
-                ]);
             }
 
             return response()->json(['res' => "data successfully inserted into db"]);
@@ -118,12 +124,13 @@ die;
 
         } elseif ($request['type'] == 'delete') {
 
+
             $user = Library::find($delete_id);
 
             $user->delete();
 
             // $imageTable = Imagetable::find($delete_id)->where("status", 1);
-            $imageTable = Imagetable::where("mainId", $delete_id)->delete();
+            Imagetable::where("mainId", $delete_id)->delete();
             // $imageTable->delete();
 
             $newfolderPath = public_path('upload/' . $delete_id);
@@ -139,7 +146,7 @@ die;
                     print_r("Issue in the code!");
                     die;
                 }
-            } 
+            }
 
 
             return response()->json(['res' => "The Record $delete_id deleted successfully"]);
@@ -151,31 +158,76 @@ die;
     {
         // echo "We reached in upload";
 
-        $temp = "tempFolder";
+        $hiddenId = $request->id;
 
-        $tempFolder = time() . '.' . $temp;
+        if (empty($hiddenId)) {
+            $temp = "tempFolder";
 
-        $uploadPath = public_path('upload/' . $tempFolder);
+            $tempFolder = time() . '.' . $temp;
 
-        if (!File::exists($uploadPath)) {
-            File::makeDirectory($uploadPath, 0777, true, true);
-            // echo "Navu file upload fuc ma bani gayi jo";
+            $uploadPath = public_path('upload/' . $tempFolder);
+
+
+            if (!File::exists($uploadPath)) {
+                File::makeDirectory($uploadPath, 0777, true, true);
+                // echo "Navu file upload fuction ma bani gayi jo";
+            }
+
+            $img = $request->file('file');
+            $allimg = [];
+
+
+            foreach ($img as $key => $singleImg) {
+                echo '<pre>';
+                print_r($singleImg);
+                die;
+
+                // $imageName = $singleImg->getClientOriginalName();
+                // $singleImg->move($uploadPath, $imageName);
+                // array_push($allimg, $imageName);
+            }
+
+            $temparr = ["allimg" => $allimg, "tempFolder" => $tempFolder];
+
+            // We are working on setting upload over insert and update
+
+        } else {
+
+            $uploadPath = public_path('upload/' . $hiddenId);
+
+            $img = $request->file('file');
+
+            $allimg = [];
+
+            foreach ($img as $key => $singleImg) {
+
+                $imageName = $singleImg->getClientOriginalName();
+
+
+                $singleImg->move($uploadPath, $imageName);
+                array_push($allimg, $imageName);
+
+                $temparr = ["allimg" => $allimg, "tempFolder" => $hiddenId];
+
+            }
+
+            // if (!File::exists($uploadPath)) {
+            //     $temparr = ["allimg" => $allimg, "tempFolder" => $hiddenId];
+            // }else{
+            //     echo '<pre>';
+            //     print_r("upload path duing edit doesn't exist!!");
+            //     die;
+            // }
+
         }
 
-        $img = $request->file('file');
-        $allimg = [];
 
 
-        foreach ($img as $key => $singleImg) {
-            $imageName = $singleImg->getClientOriginalName();
-            $singleImg->move($uploadPath, $imageName);
-            array_push($allimg, $imageName);
-        }
 
 
-        $temparr = ["allimg" => $allimg, "tempFolder" => $tempFolder];
 
-     
+
+
         return $temparr;
     }
 
@@ -183,18 +235,24 @@ die;
     public function dropzoneDelete(Request $request)
     {
 
+        echo "We reached till dropzone delete!";
+
+
         $deleteDropzoneId = $request->deleteDropzoneImageId;
-       
+
 
         $deleteDropzoneImageName = $request->deleteDropzoneImageName;
 
         $uploadPath = public_path('upload' . '/' . $deleteDropzoneId);
-    
+
+        echo '<pre>';
+        print_r($deleteDropzoneId);
+        die;
 
         if (File::exists($uploadPath)) {
-            echo "We reached here!";
+            echo "We got upload path!";
             if (File::delete($uploadPath . '/' . $deleteDropzoneImageName)) {
-                echo "The file has been deleted successfully!";
+                echo "The folder has been deleted successfully!";
             } else {
                 echo '<pre>';
                 print_r("file not exists!");

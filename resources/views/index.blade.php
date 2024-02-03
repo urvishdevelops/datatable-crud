@@ -147,11 +147,21 @@
             },
             init: function() {
                 this.on("addedfile", function(file) {
+
+
                     var dropzone = this;
                     clearDropzone = function() {
                         dropzone.removeAllFiles(true);
                     };
                 });
+
+
+
+                this.on("sending", function(file, xhr, formData) {
+                    let hidden_id = $('#hidden_id').val();
+                    formData.append("id", hidden_id)
+                });
+
 
                 this.on("removedfile", function(file) {
 
@@ -159,35 +169,31 @@
 
                 this.on("successmultiple", function(file, responseText) {
 
-                    console.log("responseText",responseText);
 
+                    let dropzoneImg = responseText.allimg;
 
-                    // let dropzoneImg = responseText.allimg;
+                    let dropzoneImgfinal = dropzoneImg;
 
-                    // let dropzoneImgfinal = dropzoneImg;
+                    let editImg = $('#hidden_img').val();
 
-                    // let editImg = $('#hidden_img').val();
+                    let editImgLength = editImg.length;
 
-                    // let editImgLength = editImg.length;
+                    let hiddenImg = $('#hidden_img').val();
 
-                    // let hiddenImg = $('#hidden_img').val();
+                    // hidden Img set condition
 
-                    // // hidden Img set condition
-                    // if (editImgLength >= 0) {
-                    //     $('#hidden_img').val(dropzoneImg + ',' + editImg);
-                    // } else {
-                    //     $('#hidden_img').val(dropzoneImg);
-                    // }
+                    if (editImgLength > 1) {
+                        $('#hidden_img').val(dropzoneImg + ',' + editImg);
+                    } else {
+                        $('#hidden_img').val(dropzoneImg);
+                    }
 
-                    // let hImg = $('#hidden_img').val(dropzoneImg);
-                    // console.log('hImg:', hImg);
+                    $("#allimg").val(responseText.allimg);
 
-                    // $("#allimg").val(responseText[0]);
+                    $foldername = $('#folder').val(responseText.tempFolder);
 
-                    // $("#folder").val(responseText[1]);
+                    console.log("$foldername", responseText.tempFolder);
 
-
-                    // $('#folder').val(responseText.tempFolder);
                 });
 
             }
