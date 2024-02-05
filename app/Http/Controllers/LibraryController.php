@@ -32,10 +32,9 @@ class LibraryController extends Controller
         $imgArray = explode(",", $hidden_img);
 
 
+
         if ($request['type'] == 'insert') {
             // insert
-
-            echo "We are reaching in insert here!";
 
 
             $libModel = new Library;
@@ -100,6 +99,7 @@ class LibraryController extends Controller
 
             $imgArray = [];
 
+
             $dropzoneWithData = '';
 
             foreach ($imageTableData as $key => $singleImageTableData) {
@@ -108,15 +108,15 @@ class LibraryController extends Controller
             }
 
 
+
             foreach ($imgArray as $key => $perImg) {
 
                 $dropzoneWithData .= "
                     <div class='image'>  
                      <img src='" . asset("upload/" . $edit_id . "/" . $perImg) . "' alt='dropzone image' height='100px' weight='auto'>
                     
-                     <button class='btn btn-danger delete_img' data-id='" . $perImg . "' id='" . $edit_id . "'>Delete</button> 
-                     </div>
-                   ";
+                     <button class='btn btn-danger delete_img' data-id='" . $perImg . "' type='button' id='" . $edit_id . "'>Delete</button> 
+                     </div>";
             }
 
 
@@ -170,7 +170,6 @@ class LibraryController extends Controller
 
             if (!File::exists($uploadPath)) {
                 File::makeDirectory($uploadPath, 0777, true, true);
-                // echo "Navu file upload fuction ma bani gayi jo";
             }
 
             $img = $request->file('file');
@@ -178,18 +177,14 @@ class LibraryController extends Controller
 
 
             foreach ($img as $key => $singleImg) {
-                echo '<pre>';
-                print_r($singleImg);
-                die;
+                $imageName = $singleImg->getClientOriginalName();
 
-                // $imageName = $singleImg->getClientOriginalName();
-                // $singleImg->move($uploadPath, $imageName);
-                // array_push($allimg, $imageName);
+                $singleImg->move($uploadPath, $imageName);
+                array_push($allimg, $imageName);
+
             }
 
             $temparr = ["allimg" => $allimg, "tempFolder" => $tempFolder];
-
-            // We are working on setting upload over insert and update
 
         } else {
 
@@ -211,22 +206,7 @@ class LibraryController extends Controller
 
             }
 
-            // if (!File::exists($uploadPath)) {
-            //     $temparr = ["allimg" => $allimg, "tempFolder" => $hiddenId];
-            // }else{
-            //     echo '<pre>';
-            //     print_r("upload path duing edit doesn't exist!!");
-            //     die;
-            // }
-
         }
-
-
-
-
-
-
-
 
         return $temparr;
     }
@@ -234,8 +214,6 @@ class LibraryController extends Controller
 
     public function dropzoneDelete(Request $request)
     {
-
-        echo "We reached till dropzone delete!";
 
 
         $deleteDropzoneId = $request->deleteDropzoneImageId;
@@ -245,27 +223,12 @@ class LibraryController extends Controller
 
         $uploadPath = public_path('upload' . '/' . $deleteDropzoneId);
 
-        echo '<pre>';
-        print_r($deleteDropzoneId);
-        die;
-
         if (File::exists($uploadPath)) {
-            echo "We got upload path!";
-            if (File::delete($uploadPath . '/' . $deleteDropzoneImageName)) {
-                echo "The folder has been deleted successfully!";
-            } else {
-                echo '<pre>';
-                print_r("file not exists!");
-                die;
-            }
-        }
+            File::delete($uploadPath . '/' . $deleteDropzoneImageName);
 
-        $imageTable = Imagetable::where("image", $deleteDropzoneImageName)->where("mainId", $deleteDropzoneId)->delete();
+            Imagetable::where("image", $deleteDropzoneImageName)->where("mainId", $deleteDropzoneId)->delete();
 
-        if ($imageTable == 1) {
-            echo "The Image has been deleted successfully from database!";
-        } else {
-            echo "Please check the error and try again!";
+
         }
 
 

@@ -9,6 +9,6 @@ class Imagetable extends Model
 {
     use HasFactory;
 
-    // protected $table = "imagetable";
+    protected $table = "imagetables";
     protected $fillable = ['mainId', 'image'];
 }

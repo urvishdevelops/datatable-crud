@@ -192,16 +192,15 @@
 
                     $foldername = $('#folder').val(responseText.tempFolder);
 
-                    console.log("$foldername", responseText.tempFolder);
-
                 });
 
             }
 
         });
 
+        let hidden_img = $('#hidden_img').val();
 
-
+        console.log("hidden_img", hidden_id);
 
         var table = $('#table').DataTable({
             searching: true,
@@ -267,11 +266,13 @@
                 },
                 url: "{{ route('library.edit') }}",
                 success: function(data) {
-                    console.log("data edit", data);
+
+
                     let singleLibraryData = data.singleLibraryData
                     let dropzoneWithData = data.dropzoneWithData
                     let dropzoneWithimgArray = data.imgArray
 
+                    console.log("dropzoneWithimgArray", dropzoneWithimgArray);
 
                     $('#hidden_img').val(dropzoneWithimgArray);
                     $('#dropzoneImg').append(dropzoneWithData);
@@ -290,7 +291,28 @@
 
         $(document).on('click', '.delete_img', function() {
             let imageName = this.getAttribute('data-id');
+
             let delId = this.getAttribute('id');
+
+            let hidden_img_val = $('#hidden_img').val();
+
+            var newImageArr = hidden_img_val.split(",");
+
+            // sol1
+            //    let imgFinalArr = newImageArr.filter(function(item) {
+            //         return item !== imageName;
+            //     })
+
+            // sol2
+            // let imgFinalArr = newImageArr.findIndex(imageName);
+
+            // sol3 worked
+            let arraycontainsImgIndex = (newImageArr.indexOf(imageName));
+
+            newImageArr.splice(arraycontainsImgIndex, 1)
+
+            $('#hidden_img').val(newImageArr);
+
 
             $(this).parent().hide();
 
@@ -317,6 +339,8 @@
 
         $(document).on('click', '.delete', function() {
             let deleteId = this.getAttribute('id');
+
+
             $.ajax({
                 type: "POST",
                 data: {
